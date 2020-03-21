@@ -1,5 +1,4 @@
 ﻿using ClientFactories.Factories.Consumers.Interfaces;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Threading.Tasks;
 
@@ -14,16 +13,11 @@ namespace ClientFactories.Factories.Consumers.Implementation
             _serviceProvider = serviceProvider;
         }
 
-        public async Task<JObject> ExecuteRequest<T>(T request) where T : Request
+        public async Task<TResponse> ExecuteRequest<TRequest, TResponse>(TRequest request) where TRequest : Request
         {
-            return await RequestData(request);
-        }
-
-        private async Task<JObject> RequestData<T>(T request) where T : Request
-        {
-            var obj = _serviceProvider.GetService(typeof(IGenericConsumer<T>));
-
-            return await ((IGenericConsumer<T>)obj).GetInfo(request);
+            var obj = _serviceProvider.GetService(typeof(IGenericConsumer<TRequest, TResponse>));
+            var consumer = obj as IGenericConsumer<TRequest, TResponse>;
+            return await consumer.GetInfo(request);
         }
     }
 }

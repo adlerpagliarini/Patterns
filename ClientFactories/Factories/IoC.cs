@@ -1,42 +1,23 @@
-﻿using ClientFactories.Factories.Clients;
-using ClientFactories.Factories.Clients.Implementation;
+﻿using ClientFactories.Factories.Clients.Implementation;
 using ClientFactories.Factories.Clients.Interfaces;
+using ClientFactories.Factories.Clients.SpecificClients;
+using ClientFactories.Factories.Clients.SpecificClients.Interfaces;
 using ClientFactories.Factories.Consumers.Implementation;
 using ClientFactories.Factories.Consumers.Interfaces;
 using GraphQL.Client;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
-using System.Text;
+using System.Reflection;
 
 namespace ClientFactories.Factories
 {
     public static class IoC
     {
-        public static void ClientFactories(this IServiceCollection services, IConfiguration configuration)
+        public static void ClientFactories(this IServiceCollection services)
         {
-            //Assembly assembly = typeof(IGenericClient<>).Assembly;
-
-            //foreach (var type in assembly.GetTypes()
-            //    .Where(t => t.IsClass && !t.IsAbstract))
-            //{
-            //    foreach (var i in type.GetInterfaces())
-            //    {
-            //        if (i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IGenericClient<>))
-            //        {
-            //            // NOTE: Due to a limitation of Microsoft.DependencyInjection we cannot
-            //            // register an open generic interface type without also having an open generic
-            //            // implementation type.So, we convert to a closed generic interface
-            //            // type to register.
-            //            var interfaceType = typeof(IGenericClient<>).MakeGenericType(i.GetGenericArguments());
-            //            services.AddScoped(interfaceType, type);
-            //            services.AddScoped(typeof(IClientMarkup), type);
-            //        }IClientMarkup
-            //    }
-            //}
-
+            // Generic Clients
             services.AddScoped<IClientFactory, ClientFactory>();
 
             services.AddScoped<IGenericClient<HttpClient>, Http>();
@@ -47,9 +28,30 @@ namespace ClientFactories.Factories
             services.AddScoped<IClientMarkup, GraphQLQuery>();
             services.AddTransient(_ => new GraphQLClient("https://localhost"));
 
-            services.AddScoped<IConsumerHandler, ConsumerHandler>();
-            services.AddScoped<IGenericConsumer<BigDataRequest>, BigDataConsumer>();
+            // Specific Clients
+            services.AddTransient<IBigDataClient, BigDataClient>();
 
+            // Consumers
+            services.AddScoped<IConsumerHandler, ConsumerHandler>();
+            services.RegisterInterfaceImplementations(typeof(IGenericConsumer<,>)); // The same as: services.AddScoped<IGenericConsumer<BigDataRequest, BigDataOuput>, BigDataConsumer>();
+        }
+
+        private static void RegisterInterfaceImplementations(this IServiceCollection services, Type interfaceType)
+        {
+            Assembly assembly = interfaceType.Assembly;
+
+            foreach (var _type in assembly.GetTypes()
+                .Where(t => t.IsClass && !t.IsAbstract))
+            {
+                foreach (var i in _type.GetInterfaces())
+                {
+                    if (i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IGenericConsumer<,>))
+                    {
+                        var _interfaceType = interfaceType.MakeGenericType(i.GetGenericArguments());
+                        services.AddScoped(_interfaceType, _type);
+                    }
+                }
+            }
         }
     }
 }

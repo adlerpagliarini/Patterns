@@ -24,7 +24,7 @@ namespace Patterns.Controllers
             {
                 Input = "1"
             };
-            var result = await _consumerHandler.ExecuteRequest(request);
+            var result = await _consumerHandler.ExecuteRequest<BigDataRequest, BigDataResponse>(request);
             return Ok(JsonConvert.SerializeObject(result));
         }
     }

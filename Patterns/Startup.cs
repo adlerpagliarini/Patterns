@@ -1,11 +1,5 @@
-using System.Net.Http;
 using ClientFactories.Factories;
 using ClientFactories.Factories.Clients;
-using ClientFactories.Factories.Clients.Implementation;
-using ClientFactories.Factories.Clients.Interfaces;
-using ClientFactories.Factories.Consumers.Implementation;
-using ClientFactories.Factories.Consumers.Interfaces;
-using GraphQL.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -29,7 +23,7 @@ namespace Patterns
             var appSettingsSection = Configuration.GetSection("ClientSettings");
             services.Configure<ClientSettings>(appSettingsSection);
 
-            services.ClientFactories(Configuration);
+            services.ClientFactories();
             services.AddControllers();
         }
 

@@ -1,13 +1,9 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace ClientFactories.Factories.Consumers.Interfaces
 {
-    public interface IGenericConsumer<T>
+    public interface IGenericConsumer<TInput, TOuput>
     {
-        RequestionSource Source { get; }
-
-        Task<JObject> GetInfo(T input);
-
+        Task<TOuput> GetInfo(TInput input);
     }
 }
